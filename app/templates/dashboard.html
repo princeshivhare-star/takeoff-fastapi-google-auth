@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #f4f7fb;
+            color: #222;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 22px 60px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .navbar h2 {
+            font-size: 24px;
+        }
+
+        .logout {
+            color: #764ba2;
+            background: white;
+            padding: 10px 18px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 45px auto;
+            padding: 0 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+        }
+
+        .profile {
+            text-align: center;
+        }
+
+        .profile img {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #667eea;
+            margin-bottom: 18px;
+        }
+
+        .profile h2 {
+            font-size: 26px;
+            margin-bottom: 8px;
+        }
+
+        .email {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #eef1ff;
+            color: #667eea;
+            padding: 10px 15px;
+            border-radius: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .info-row {
+            margin-top: 20px;
+            text-align: left;
+            background: #f8f9ff;
+            padding: 14px;
+            border-radius: 14px;
+        }
+
+        .info-row strong {
+            color: #555;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .search-card h2 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .search-card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .input-box {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        input {
+            flex: 1;
+            padding: 15px;
+            border-radius: 14px;
+            border: 1px solid #ddd;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+        }
+
+        button {
+            padding: 15px 22px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102,126,234,0.3);
+        }
+
+        pre {
+            background: #111827;
+            color: #22c55e;
+            padding: 20px;
+            border-radius: 18px;
+            overflow-x: auto;
+            min-height: 160px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .success-box {
+            background: #ecfdf5;
+            color: #047857;
+            padding: 14px;
+            border-radius: 14px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 800px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .navbar {
+                padding: 20px;
+            }
+
+            .input-box {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <h2>FastAPI Auth Dashboard</h2>
+        <a href="/logout" class="logout">Logout</a>
+    </div>
+
+    <div class="container">
+        <div class="success-box">
+            ✅ Google login successful. Your details are stored in SQLite database.
+        </div>
+
+        <div class="grid">
+            <div class="card profile">
+                <img src="{{ user.profile_photo_url }}" alt="Profile Photo">
+
+                <h2>{{ user.name }}</h2>
+                <div class="email">{{ user.email }}</div>
+
+                <div class="badge">
+                    Generated ID: {{ user.generated_id }}
+                </div>
+
+                <div class="info-row">
+                    <strong>Google ID</strong>
+                    {{ user.google_id }}
+                </div>
+
+                <div class="info-row">
+                    <strong>Profile Photo URL</strong>
+                    {{ user.profile_photo_url }}
+                </div>
+            </div>
+
+            <div class="card search-card">
+                <h2>Find User Details</h2>
+                <p>
+                    Enter the generated ID below. If the ID exists in the SQLite
+                    database, the user details will be displayed. Otherwise, it will show
+                    "Try Again".
+                </p>
+
+                <div class="input-box">
+                    <input type="text" id="generatedId" placeholder="Enter Generated ID">
+                    <button onclick="fetchUser()">Submit</button>
+                </div>
+
+                <pre id="result">API response will appear here...</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchUser() {
+            const generatedId = document.getElementById("generatedId").value;
+            const resultBox = document.getElementById("result");
+
+            if (!generatedId) {
+                resultBox.innerText = "Please enter generated ID";
+                return;
+            }
+
+            const response = await fetch("/api/user", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    generated_id: generatedId
+                })
+            });
+
+            const data = await response.json();
+            resultBox.innerText = JSON.stringify(data, null, 2);
+        }
+    </script>
+
+</body>
+</html>
