@@ -21,7 +21,7 @@ app.add_middleware(
     secret_key=os.getenv("SESSION_SECRET_KEY")
 )
 
-templates = Jinja2Templates(directory="app/templates")
+templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
 
 Base.metadata.create_all(bind=engine)
 
