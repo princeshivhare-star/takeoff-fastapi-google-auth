@@ -18,7 +18,7 @@ app = FastAPI(title="TakeOff Talent Assignment")
 
 app.add_middleware(
     SessionMiddleware,
-    secret_key=os.getenv("SESSION_SECRET_KEY")
+    secret_key=os.getenv("SESSION_SECRET_KEY", "fallback_secret_key")
 )
 
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
@@ -42,10 +42,12 @@ def home(request: Request):
         context={}
     )
 
-
 @app.get("/login")
 async def login(request: Request):
-    redirect_uri = os.getenv("BASE_URL") + "/auth/callback"
+    if not os.getenv("GOOGLE_CLIENT_ID") or not os.getenv("GOOGLE_CLIENT_SECRET"):
+        return {"error": "Google OAuth environment variables are missing"}
+
+    redirect_uri = os.getenv("BASE_URL", "http://localhost:8000") + "/auth/callback"
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
 
